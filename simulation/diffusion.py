@@ -72,7 +72,6 @@ class Diffusion:
         else:
             raise NotImplementedError()
 
-
     def replace_brownian_motion(
         self,
         W_traj: NDArray[float_],
@@ -230,12 +229,12 @@ class Diffusion:
             return (1 - np.exp(-k * t)) / k
 
         dt = np.diff(self.t_grid)
-        beta = f_exp(k=lam[None, :] * dt[:, None], t=1) # (len(dt), len(lam))
+        beta = f_exp(k=lam[None, :] * dt[:, None], t=1)  # (len(dt), len(lam))
         eps_cov = (f_exp(k=lam[None, :, None] + lam[None, None, :], t=dt[:, None, None]) -
-                   np.einsum("ki,kj,k->kij", beta, beta, dt)) # (len(dt), len(lam), len(lam))
-        eps_sqrt = self.__get_pseudo_square_root(R=eps_cov) # (len(dt), len(lam), len(lam))
+                   np.einsum("ki,kj,k->kij", beta, beta, dt))  # (len(dt), len(lam), len(lam))
+        eps_sqrt = self.__get_pseudo_square_root(R=eps_cov)  # (len(dt), len(lam), len(lam))
 
-        dW = np.diff(self.W_traj[:, dims, :], axis=2) # (size, len(dims), len(dt))
+        dW = np.diff(self.W_traj[:, dims, :], axis=2)  # (size, len(dims), len(dt))
         dY = np.einsum("ki,lik->lik", beta, dW) + \
              np.einsum("kij,ljk->lik", eps_sqrt, self.rng.normal(size=(self.size, lam.size, dt.size)))
         dY = np.einsum("ij,ljk->lik", L, dY)
