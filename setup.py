@@ -1,11 +1,11 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
    name='simulation',
    version='1.0',
-   description='A useful module',
+   description='Diffusion simulation and Monte Carlo',
    author='MrG1raffe',
    author_email='dimitri.sotnikov@gmail.com',
-   py_modules=['brownian_motion', 'diffusion', 'utility', 'monte_carlo'],
+   packages=find_packages(),
    install_requires=['numpy', 'typing'], #external packages as dependencies
 )
