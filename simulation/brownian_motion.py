@@ -27,19 +27,18 @@ def simulate_brownian_motion_from_increments(
     """
     if rng is None:
         rng = np.random.default_rng(seed=DEFAULT_SEED)
+    if isinstance(t_grid, list):
+        t_grid = np.array(t_grid)
+    if not isinstance(t_grid, np.ndarray):
+        t_grid = np.array([t_grid])
     dt = np.diff(np.concatenate([np.zeros(1), t_grid]))
     if np.any(dt < 0):
         raise ValueError("Time grid should be increasing.")
+
     dW = rng.normal(size=(size, dim, len(t_grid)))
+    if dim == 1:
+        return np.cumsum(np.sqrt(dt) * dW, axis=2)[:, 0, :]
     return np.cumsum(np.sqrt(dt) * dW, axis=2)
-
-
-# ToDo: Add simulation as a brownian bridge
-def get_median(t_grid_part):
-    # numpy.argsort(data)[len(data)//2]
-
-def get_path(t_grid: Union[float, NDArray[float_]]):
-    return
 
 
 def simulate_brownian_motion_from_brownian_bridge(
@@ -63,12 +62,45 @@ def simulate_brownian_motion_from_brownian_bridge(
     """
     if rng is None:
         rng = np.random.default_rng(seed=DEFAULT_SEED)
+
+    if isinstance(t_grid, list):
+        t_grid = np.array(t_grid)
+    if not isinstance(t_grid, np.ndarray):
+        t_grid = np.array([t_grid])
     dt = np.diff(np.concatenate([np.zeros(1), t_grid]))
     if np.any(dt < 0):
         raise ValueError("Time grid should be increasing.")
 
-    if isinstance(t_grid, float):
+    if t_grid.shape[0] == 1:
         dW = rng.normal(size=(size, dim, len(t_grid)))
+        if dim == 1:
+            return np.cumsum(np.sqrt(dt) * dW, axis=2)[:, 0, :]
         return np.cumsum(np.sqrt(dt) * dW, axis=2)
 
-    return
+    W = np.zeros((size, dim, t_grid.shape[0]))
+    W[:, :, -1] = np.sqrt(t_grid[-1]) * rng.normal(size=(size, dim))
+
+    map = np.zeros(t_grid.shape[0])
+    map[0] = 1
+    map[-1] = 1
+
+    while sum(map) != t_grid.shape[0]:
+        idx_filled,  = np.where(map == 1)
+        j = idx_filled[:-1]
+        k = idx_filled[1:]
+        idx_not_in_a_row = np.concatenate([np.diff(j), [2]]) != 1
+        j = j[idx_not_in_a_row]
+        k = k[idx_not_in_a_row]
+        i = np.floor((j + k) / 2).astype(int)
+        map[i] = 1
+
+        N_step = rng.normal(size=(size, dim, i.shape[0]))
+        E_step = ((t_grid[k] - t_grid[i]) / (t_grid[k] - t_grid[j]) * W[:, :, j] +
+                  (t_grid[i] - t_grid[j]) / (t_grid[k] - t_grid[j]) * W[:, :, k])
+        std_step = ((t_grid[i] - t_grid[j]) *
+                    (t_grid[k] - t_grid[i]) /
+                    (t_grid[k] - t_grid[j]))
+        W[:, :, i] = E_step + np.sqrt(std_step) * N_step
+    if dim == 1:
+        return W[:, 0, :]
+    return W
