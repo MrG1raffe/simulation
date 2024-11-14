@@ -1,6 +1,6 @@
 """
 Three important things to make `python -m unittest` work:
-    1. Run it from the root directory "SmileHJM\"
+    1. Run it from the root directory "simulation\"
     2. Add an empty file `__init__.py` into each directory with test files.
     3. Test file names should match the pattern "test_*.py". Ideally, use *module_name* after "test_".
 """

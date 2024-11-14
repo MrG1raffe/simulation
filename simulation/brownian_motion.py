@@ -3,7 +3,7 @@ from typing import Union
 from numpy.typing import NDArray
 from numpy import float_
 
-from utility import DEFAULT_SEED, to_numpy
+from simulation.utility import DEFAULT_SEED, to_numpy
 
 
 def simulate_brownian_motion_from_increments(
