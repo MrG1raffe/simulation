@@ -5,6 +5,7 @@ from numpy import float_
 
 DEFAULT_SEED = 42
 
+
 def is_number(x: Any) -> bool:
     """
     Checks whether x is int or float.
