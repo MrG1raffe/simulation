@@ -5,12 +5,42 @@ from simulation.diffusion import Diffusion
 
 
 class TestDiffusion(unittest.TestCase):
-    def test_brownian_motion(self):
+    def test_brownian_motion_increments(self):
         T = 2
         size = 100
         t_grid = np.linspace(0, T, 1000)
         rng = np.random.default_rng(seed=42)
         diffusion = Diffusion(t_grid=t_grid, size=size, dim=5, rng=rng)
+
+        R = np.eye(3)
+        R[0, 1] = R[1, 0] = -0.99999999
+        W0 = np.array((1, 2, 3))
+        mu = np.array((2, 2, 5))
+        sigma = np.array((2, 1, 2))
+        W = diffusion.brownian_motion(init_val=W0, drift=mu, correlation=R, vol=sigma, dims=(1, 2, 3))
+
+        self.assertTrue(W.shape == (size, 3, len(t_grid)))
+        self.assertTrue(np.allclose((W[:, 0, :] - W0[0] - mu[0] * t_grid) / sigma[0],
+                                    -(W[:, 1, :] - W0[1] - mu[1] * t_grid) / sigma[1],
+                                    atol=0.001)
+        )
+        self.assertTrue(np.allclose(np.corrcoef(np.diff(W[0, 1, :]), np.diff(W[0, 2, :])), np.eye(2), atol=0.03))
+
+        S = diffusion.geometric_brownian_motion(init_val=np.exp(W0), drift=mu, correlation=R, vol=sigma, dims=(1, 2, 3))
+        W = np.log(S)
+        self.assertTrue(S.shape == (size, 3, len(t_grid)))
+        self.assertTrue(np.allclose((W[:, 0, :] - W0[0] - (mu[0] - 0.5 * sigma[0]**2) * t_grid) / sigma[0],
+                                    -(W[:, 1, :] - W0[1] - (mu[1] - 0.5 * sigma[1]**2) * t_grid) / sigma[1],
+                                    atol=0.001)
+                        )
+        self.assertTrue(np.allclose(np.corrcoef(np.diff(W[0, 1, :]), np.diff(W[0, 2, :])), np.eye(2), atol=0.03))
+
+    def test_brownian_motion_brownian_bridge(self):
+        T = 2
+        size = 100
+        t_grid = np.linspace(0, T, 1000)
+        rng = np.random.default_rng(seed=42)
+        diffusion = Diffusion(t_grid=t_grid, size=size, dim=5, rng=rng, method="brownian_bridge")
 
         R = np.eye(3)
         R[0, 1] = R[1, 0] = -0.99999999
