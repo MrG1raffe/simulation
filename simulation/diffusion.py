@@ -91,7 +91,7 @@ class Diffusion:
 
     def brownian_motion_increments(
         self,
-        dims: Tuple[int]= None,
+        dims: Tuple[int, ...]= None,
         squeeze: bool = False
     ) -> NDArray[float_]:
         """
@@ -116,7 +116,7 @@ class Diffusion:
         drift: Union[float, NDArray[float_]] = 0,
         correlation: Union[float, NDArray[float_]] = None,
         vol: Union[float, NDArray[float_]] = 1,
-        dims: Tuple[int] = None,
+        dims: Tuple[int, ...] = None,
         squeeze: bool = False
     ) -> Union[float, NDArray[float_]]:
         """
@@ -152,7 +152,7 @@ class Diffusion:
         drift: Union[float, NDArray[float_]] = 0,
         correlation: Union[float, NDArray[float_]] = None,
         vol: Union[float, NDArray[float_]] = 1,
-        dims: Tuple[int] = None,
+        dims: Tuple[int, ...] = None,
         squeeze: bool = False
     ) -> Union[float, NDArray[float_]]:
         """
@@ -191,7 +191,7 @@ class Diffusion:
         lam: Union[float, NDArray[float_]] = 1,
         theta: Union[float, NDArray[float_]] = 0,
         sigma: Union[float, NDArray[float_]] = 1,
-        dims: Tuple[int] = None,
+        dims: Tuple[int, ...] = None,
         squeeze: bool = False
     ) -> Union[float, NDArray[float_]]:
         """
@@ -253,7 +253,7 @@ class Diffusion:
         init_val: Union[float, NDArray[float_]] = 0,
         drift: Callable[[Union[float, NDArray[float_]], Union[float, NDArray[float_]]], Union[float, NDArray[float_]]] = lambda x: np.zeros_like(x),
         vol: Callable[[Union[float, NDArray[float_]], Union[float, NDArray[float_]]], Union[float, NDArray[float_]]] = lambda x: np.zeros_like(x),
-        dims: Tuple[int] = None,
+        dims: Tuple[int, ...] = None,
         squeeze: bool = False,
     ) -> Union[float, NDArray[float_]]:
         """
@@ -301,7 +301,7 @@ class Diffusion:
     def integral_of_brownian_motion(
         self,
         T: float,
-        dims: Tuple[int] = None,
+        dims: Tuple[int, ...] = None,
         squeeze: bool = False
     ) -> NDArray[float_]:
         """
