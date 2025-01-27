@@ -4,7 +4,7 @@ from numpy.typing import NDArray
 from numpy import float_
 
 from simulation.utility import to_numpy, DEFAULT_SEED
-from simulation.brownian_motion import simulate_brownian_motion_from_increments
+from simulation.brownian_motion import simulate_brownian_motion_from_increments, simulate_brownian_motion_from_brownian_bridge
 
 
 class Diffusion:
@@ -33,7 +33,7 @@ class Diffusion:
             dim: dimensionality of the Brownian motion.
             rng: `np.random.Generator` used for simulation.
             W_traj: trajectories of the standard Brownian motion if the simulation is not needed.
-            method: method used for Brownian motion simulation. Possible options: 'increments'.
+            method: method used for Brownian motion simulation. Possible options: 'increments', 'brownian_bridge'.
         """
         self.t_grid = to_numpy(t_grid)
         self.rng = np.random.default_rng(seed=DEFAULT_SEED) if rng is None else rng
@@ -51,6 +51,15 @@ class Diffusion:
                     dim=self.dim,
                     rng=self.rng
                 )
+            elif method == 'brownian_bridge':
+                self.W_traj = simulate_brownian_motion_from_brownian_bridge(
+                    size=self.size,
+                    t_grid=self.t_grid,
+                    dim=self.dim,
+                    rng=self.rng
+                )
+            else:
+                raise ValueError(f"The 'method' parameter must be one of ['increments', 'brownian_bridge'], instead {method} was given.")
 
     @staticmethod
     def __get_pseudo_square_root(
@@ -71,7 +80,6 @@ class Diffusion:
             return np.linalg.cholesky(R)
         else:
             raise NotImplementedError()
-
 
     def replace_brownian_motion(
         self,
@@ -230,12 +238,12 @@ class Diffusion:
             return (1 - np.exp(-k * t)) / k
 
         dt = np.diff(self.t_grid)
-        beta = f_exp(k=lam[None, :] * dt[:, None], t=1) # (len(dt), len(lam))
+        beta = f_exp(k=lam[None, :] * dt[:, None], t=1)  # (len(dt), len(lam))
         eps_cov = (f_exp(k=lam[None, :, None] + lam[None, None, :], t=dt[:, None, None]) -
-                   np.einsum("ki,kj,k->kij", beta, beta, dt)) # (len(dt), len(lam), len(lam))
-        eps_sqrt = self.__get_pseudo_square_root(R=eps_cov) # (len(dt), len(lam), len(lam))
+                   np.einsum("ki,kj,k->kij", beta, beta, dt))  # (len(dt), len(lam), len(lam))
+        eps_sqrt = self.__get_pseudo_square_root(R=eps_cov)  # (len(dt), len(lam), len(lam))
 
-        dW = np.diff(self.W_traj[:, dims, :], axis=2) # (size, len(dims), len(dt))
+        dW = np.diff(self.W_traj[:, dims, :], axis=2)  # (size, len(dims), len(dt))
         dY = np.einsum("ki,lik->lik", beta, dW) + \
              np.einsum("kij,ljk->lik", eps_sqrt, self.rng.normal(size=(self.size, lam.size, dt.size)))
         dY = np.einsum("ij,ljk->lik", L, dY)
