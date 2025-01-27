@@ -107,7 +107,8 @@ class MonteCarlo:
         plot_intervals: bool = False,
         log: bool = False,
         color: str = 'b',
-        label: str = 'MC estimator'
+        label: str = 'MC estimator',
+        **kwargs
     ) -> None:
         """
         Plots a convergence diagram for the given one-dimensional batch.
@@ -123,14 +124,14 @@ class MonteCarlo:
         if ax is None:
             _, ax = plt.subplots()
 
-        subbatch = np.cumsum(self.batch)[step::step]
+        subbatch = np.cumsum(self.batch)[::step]
         ns = self.batch_size * (self.n_batch - 1) + np.arange(1, len(subbatch) + 1) * step
         means = subbatch / ns
 
         x = np.log(ns) if log else ns
         xlabel = 'log(n)' if log else 'n'
 
-        ax.plot(x, means, color, label=label)
+        ax.plot(x, means, color, label=label, **kwargs)
         ax.grid('on')
 
         if plot_intervals:
